@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Pro - Gestão Integrada de Ponto</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ================= VARIÁVEIS DE TEMA ================= */
+        :root {
+            --bg-gradient: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #090d16 70%);
+            --bg-body: #090d16;
+            --bg-card: rgba(17, 24, 39, 0.75);
+            --borda-glow: rgba(255, 255, 255, 0.08);
+            --texto-principal: #f3f4f6;
+            --texto-mutado: #9ca3af;
+            --bg-input: rgba(0, 0, 0, 0.4);
+            --bg-td: rgba(255, 255, 255, 0.02);
+            --bg-td-hover: rgba(255, 255, 255, 0.05);
+            --bg-badge: rgba(0, 0, 0, 0.5);
+            
+            --neon-entrada: #10b981;
+            --glow-entrada: rgba(16, 185, 129, 0.2);
+            --neon-almoco: #f59e0b;
+            --glow-almoco: rgba(245, 158, 11, 0.2);
+            --neon-volta: #06b6d4;
+            --glow-volta: rgba(6, 182, 212, 0.2);
+            --neon-saida: #f43f5e;
+            --glow-saida: rgba(244, 63, 94, 0.2);
+            --neon-master: linear-gradient(135deg, #6366f1, #a855f7);
+            --toast-bg: #ffffff;
+            --toast-txt: #000000;
+        }
+
+        body.light-mode {
+            --bg-gradient: radial-gradient(circle at 50% 0%, #e0e7ff 0%, #f8fafc 70%);
+            --bg-body: #f8fafc;
+            --bg-card: rgba(255, 255, 255, 0.88);
+            --borda-glow: rgba(15, 23, 42, 0.08);
+            --texto-principal: #0f172a;
+            --texto-mutado: #64748b;
+            --bg-input: #ffffff;
+            --bg-td: rgba(15, 23, 42, 0.02);
+            --bg-td-hover: rgba(15, 23, 42, 0.05);
+            --bg-badge: #ffffff;
+            --toast-bg: #0f172a;
+            --toast-txt: #ffffff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg-gradient); color: var(--texto-principal); padding: 40px 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; transition: background 0.4s, color 0.4s; }
+        
+        .dashboard { max-width: 1200px; width: 100%; display: grid; grid-template-columns: 1fr; gap: 24px; }
+        @media (min-width: 950px) { .dashboard { grid-template-columns: 380px 1fr; } }
+
+        .card { background: var(--bg-card); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--borda-glow); padding: 30px; border-radius: 24px; box-shadow: 0 20px 40px -15px rgba(0,0,0,0.15); }
+        .col-span-full { grid-column: 1 / -1; }
+
+        /* Header */
+        .header-painel { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; position: relative; overflow: hidden; }
+        .header-painel::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--neon-master); }
+        .header-painel h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.03em; }
+        .header-controls { display: flex; align-items: center; gap: 16px; }
+        
+        /* Botões Globais */
+        .btn-global { background: var(--bg-input); border: 1px solid var(--borda-glow); color: var(--texto-principal); padding: 10px 16px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 8px; }
+        .btn-global:hover { transform: translateY(-1px); background: var(--bg-td-hover); }
+        .btn-admin-active { background: #6366f1 !important; color: white !important; box-shadow: 0 0 12px rgba(99, 102, 241, 0.4); }
+
+        .clock-container { text-align: right; }
+        .clock { font-size: 2.2rem; font-weight: 800; background: linear-gradient(135deg, #4f46e5, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-variant-numeric: tabular-nums; }
+        .date { font-size: 0.8rem; color: var(--texto-mutado); font-weight: 600; text-transform: uppercase; }
+
+        /* Form e Elementos */
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.8rem; color: #6366f1; text-transform: uppercase; letter-spacing: 0.05em; }
+        select, input[type="text"], input[type="password"], input[type="time"], input[type="date"] { width: 100%; padding: 14px; border: 1px solid var(--borda-glow); border-radius: 12px; font-size: 0.95rem; background: var(--bg-input); color: var(--texto-principal); transition: all 0.3s; }
+        select:focus, input:focus { outline: none; border-color: #6366f1; }
+        select option { background: var(--bg-body); color: var(--texto-principal); }
+
+        /* Calendário topo da Tabela */
+        .calendar-filter-wrapper { display: flex; align-items: center; gap: 12px; background: var(--bg-input); padding: 10px 16px; border-radius: 16px; border: 1px solid var(--borda-glow); margin-bottom: 18px; max-width: 320px; }
+        .calendar-filter-wrapper label { margin-bottom: 0; white-space: nowrap; }
+        .calendar-filter-wrapper input[type="date"] { padding: 8px 12px; font-size: 0.9rem; border-radius: 8px; }
+
+        /* Grid de Batida de Ponto */
+        .actions-grid { display: flex; flex-direction: column; gap: 14px; }
+        .btn-ponto { width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.2s; color: white; }
+        .btn-ponto:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        
+        .btn-entrada { background: var(--neon-entrada); box-shadow: 0 4px 12px var(--glow-entrada); }
+        .btn-sai-almoco { background: var(--neon-almoco); box-shadow: 0 4px 12px var(--glow-almoco); }
+        .btn-vol-almoco { background: var(--neon-volta); box-shadow: 0 4px 12px var(--glow-volta); }
+        .btn-saida-final { background: var(--neon-saida); box-shadow: 0 4px 12px var(--glow-saida); }
+
+        /* Seção do Administrador */
+        .admin-section { display: none; margin-bottom: 24px; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .admin-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        @media(min-width: 600px) { .admin-grid { grid-template-columns: 1fr 1fr; } }
+
+        /* Tabelas */
+        .table-container { overflow-x: auto; margin-top: 10px; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; text-align: left; }
+        th { color: var(--texto-mutado); font-weight: 700; font-size: 0.75rem; text-transform: uppercase; padding: 12px 16px; }
+        td { padding: 14px 16px; background: var(--bg-td); font-size: 0.9rem; border-top: 1px solid var(--borda-glow); border-bottom: 1px solid var(--borda-glow); }
+        td:first-child { border-left: 1px solid var(--borda-glow); border-radius: 10px 0 0 10px; }
+        td:last-child { border-right: 1px solid var(--borda-glow); border-radius: 0 10px 10px 0; }
+        tr:hover td { background: var(--bg-td-hover); }
+
+        /* Badges e Inputs de Tabela */
+        .badge-vazio { color: #64748b; font-weight: bold; }
+        .badge-hora { font-variant-numeric: tabular-nums; font-weight: 700; background: var(--bg-badge); padding: 5px 10px; border-radius: 6px; border: 1px solid var(--borda-glow); }
+        .table-input { padding: 4px 8px; font-size: 0.85rem; border-radius: 6px; width: 85px; background: var(--bg-body); }
+
+        /* Botões de Ação na Tabela */
+        .btn-action { padding: 6px 12px; font-size: 0.75rem; font-weight: 700; border-radius: 8px; border: 1px solid var(--borda-glow); cursor: pointer; background: transparent; color: var(--texto-principal); margin-right: 4px; transition: all 0.2s; }
+        .btn-edit:hover { background: #3b82f6; color: white; border-color: #3b82f6; }
+        .btn-delete:hover { background: #ef4444; color: white; border-color: #ef4444; }
+        .btn-save:hover { background: #10b981; color: white; border-color: #10b981; }
+
+        /* Rodapé / Utils */
+        .utils-bar { display: none; justify-content: flex-end; gap: 14px; margin-top: 20px; animation: fadeIn 0.4s ease; }
+        .btn-sub { background: var(--bg-input); border: 1px solid var(--borda-glow); color: var(--texto-principal); padding: 10px 16px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.3s; }
+        .btn-sub:hover { background: var(--bg-td-hover); }
+        .btn-danger-sub { background: rgba(244, 63, 94, 0.05); border: 1px solid rgba(244, 63, 94, 0.2); color: var(--neon-saida); }
+        .btn-danger-sub:hover { background: var(--neon-saida); color: #fff; }
+
+        /* Toast */
+        #toast { opacity: 0; visibility: hidden; position: fixed; bottom: 30px; right: 30px; background: var(--toast-bg); color: var(--toast-txt); padding: 16px 24px; border-radius: 12px; box-shadow: 0 15px 30px rgba(0,0,0,0.2); transition: all 0.3s; font-size: 0.9rem; font-weight: 700; z-index: 1000; }
+        #toast.show { opacity: 1; visibility: visible; transform: translateY(0); }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    
+    <div class="card col-span-full header-painel">
+        <div>
+            <h1>QUANTUM // ENTERPRISE</h1>
+            <p>Módulo Unificado de Ponto & Auditoria (Nuvem)</p>
+        </div>
+        
+        <div class="header-controls">
+            <button class="btn-global" onclick="alternarTema()" id="theme-btn">☀️ Modo Claro</button>
+            <button class="btn-global" onclick="toggleAdminView()" id="admin-master-btn">🔒 Área Restrita</button>
+            
+            <div class="clock-container">
+                <div class="clock" id="live-clock">00:00:00</div>
+                <div class="date" id="live-date">Sincronizando...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card col-span-full admin-section" id="admin-panel">
+        <h3 style="font-size: 1.2rem; font-weight: 800; color: #8b5cf6; margin-bottom: 15px; border-bottom: 1px solid var(--borda-glow); padding-bottom: 10px;">Painel de Controle do Administrador</h3>
+        <div class="admin-grid">
+            <div style="border-right: 1px solid var(--borda-glow); padding-right: 20px;">
+                <label>Cadastrar Novo Colaborador</label>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <input type="text" id="new-employee-name" placeholder="Nome Completo">
+                    <input type="password" id="new-employee-pin" placeholder="Definir Código PIN de Acesso" maxlength="8">
+                    <button class="btn-global btn-admin-active" style="justify-content: center;" onclick="cadastrarFuncionario()">Salvar Novo Usuário</button>
+                </div>
+                
+                <h4 style="font-size: 0.85rem; margin-top: 15px; color: var(--texto-mutado);">Funcionários Ativos & PINs:</h4>
+                <div id="admin-employee-list" style="max-height: 120px; overflow-y: auto; margin-top: 8px; font-size: 0.9rem;"></div>
+            </div>
+            
+            <div>
+                <label>Diretrizes de Auditoria</label>
+                <p style="font-size: 0.85rem; color: var(--texto-mutado); line-height: 1.5;">
+                    As informações estão sincronizadas globalmente via nuvem. Como administrador, você visualiza e pode auditar a frequência de todos os colaboradores para o dia selecionado. Os funcionários só enxergam seus próprios dados validando o PIN.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="form-group">
+            <label for="username">Selecione seu Nome</label>
+            <select id="username" onchange="limparVisualizacaoFuncionario()"></select>
+        </div>
+
+        <div class="form-group">
+            <label for="user-pin">Seu Código de Acesso (PIN)</label>
+            <input type="password" id="user-pin" placeholder="Digite seu código" oninput="carregarPontos()">
+        </div>
+
+        <div class="actions-grid">
+            <button class="btn-ponto btn-entrada" onclick="registrarPonto('entrada')">Entrada</button>
+            <button class="btn-ponto btn-sai-almoco" onclick="registrarPonto('saidaAlmoco')">Saída Almoço</button>
+            <button class="btn-ponto btn-vol-almoco" onclick="registrarPonto('voltaAlmoco')">Volta Almoço</button>
+            <button class="btn-ponto btn-saida-final" onclick="registrarPonto('saidaFinal')">Saída Final</button>
+        </div>
+    </div>
+
+    <div class="card" style="padding-top: 24px;">
+        <h3 id="table-title" style="font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; color: #4f46e5; letter-spacing: -0.02em;">Espelho de Frequência Diário</h3>
+        
+        <div class="calendar-filter-wrapper">
+            <label for="ponto-date-filter">📅 Filtrar Dia:</label>
+            <input type="date" id="ponto-date-filter" onchange="carregarPontos()">
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Colaborador</th>
+                        <th>Data</th>
+                        <th>Entrada</th>
+                        <th>S. Almoço</th>
+                        <th>V. Almoço</th>
+                        <th>S. Final</th>
+                        <th id="th-acoes" style="display: none;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="history-table"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-span-full utils-bar" id="admin-utils-bar">
+        <button class="btn-sub" onclick="exportarCSV()">Exportar Dados (Excel)</button>
+        <button class="btn-sub btn-danger-sub" onclick="limparHistorico()">Zerar Toda a Base</button>
+    </div>
+</div>
+
+<div id="toast">Notificação</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, updateDoc, deleteDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+    // CONFIGURAÇÃO DO SEU FIREBASE (SUBSTITUA PELOS SEUS DADOS COPIADOS)
+   const firebaseConfig = {
+  apiKey: "AIzaSyDFt8uZtKG-AS_GrA8BbuzyqX2oGTgaaaQ",
+  authDomain: "quantum-ponto.firebaseapp.com",
+  projectId: "quantum-ponto",
+  storageBucket: "quantum-ponto.firebasestorage.app",
+  messagingSenderId: "209663683867",
+  appId: "1:209663683867:web:51946735b1e8c3e39bf7be"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let dbFuncionarios = [];
+    let dbPontos = [];
+    let isAdminLoggedIn = false;
+    const SENHA_ADMIN = "admin123";
+
+    // Relógio Ativo
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('live-clock').textContent = now.toLocaleTimeString('pt-BR');
+        const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+        document.getElementById('live-date').textContent = now.toLocaleDateString('pt-BR', options);
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Sincronização em tempo real dos Funcionários
+    onSnapshot(collection(db, "funcionarios"), (snapshot) => {
+        dbFuncionarios = [];
+        snapshot.forEach(doc => {
+            dbFuncionarios.push({ id: doc.id, ...doc.data() });
+        });
+        carregarFuncionarios();
+        carregarPontos();
+    });
+
+    // Sincronização em tempo real das Batidas de Ponto
+    onSnapshot(collection(db, "pontos"), (snapshot) => {
+        dbPontos = [];
+        snapshot.forEach(doc => {
+            dbPontos.push({ id: doc.id, ...doc.data() });
+        });
+        carregarPontos();
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const hoje = new Date();
+        const ano = hoje.getFullYear();
+        const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+        const dia = String(hoje.getDate()).padStart(2, '0');
+        document.getElementById('ponto-date-filter').value = `${ano}-${mes}-${dia}`;
+        
+        if (localStorage.getItem('quantumTheme') === 'light') {
+            document.body.classList.add('light-mode');
+            document.getElementById('theme-btn').textContent = '🌙 Modo Escuro';
+        }
+    });
+
+    function alternarTema() {
+        const body = document.body;
+        body.classList.toggle('light-mode');
+        const isLight = body.classList.contains('light-mode');
+        localStorage.setItem('quantumTheme', isLight ? 'light' : 'dark');
+        document.getElementById('theme-btn').textContent = isLight ? '🌙 Modo Escuro' : '☀️ Modo Claro';
+    }
+    window.alternarTema = alternarTema;
+
+    function toggleAdminView() {
+        const utilsBar = document.getElementById('admin-utils-bar');
+        if (!isAdminLoggedIn) {
+            const senha = prompt("Insira a senha de administrador:");
+            if (senha === SENHA_ADMIN) {
+                isAdminLoggedIn = true;
+                document.getElementById('admin-panel').style.display = 'block';
+                utilsBar.style.display = 'flex';
+                document.getElementById('admin-master-btn').textContent = '🔓 Sair do Admin';
+                document.getElementById('admin-master-btn').classList.add('btn-admin-active');
+                document.getElementById('th-acoes').style.display = 'table-cell';
+                document.getElementById('table-title').textContent = '🛠️ Modo de Edição / Auditoria Avançada';
+                document.getElementById('table-title').style.color = '#8b5cf6';
+                mostrarToast('🔓 Modo Administrador ativado.');
+                carregarPontos();
+            } else if (senha !== null) {
+                alert('Senha incorreta!');
+            }
+        } else {
+            isAdminLoggedIn = false;
+            document.getElementById('admin-panel').style.display = 'none';
+            utilsBar.style.display = 'none';
+            document.getElementById('admin-master-btn').textContent = '🔒 Área Restrita';
+            document.getElementById('admin-master-btn').classList.remove('btn-admin-active');
+            document.getElementById('th-acoes').style.display = 'none';
+            document.getElementById('table-title').textContent = 'Espelho de Frequência Diário';
+            document.getElementById('table-title').style.color = '#4f46e5';
+            document.getElementById('user-pin').value = '';
+            mostrarToast('🔒 Modo Administrador encerrado.');
+            carregarPontos();
+        }
+    }
+    window.toggleAdminView = toggleAdminView;
+
+    async function cadastrarFuncionario() {
+        const nameInput = document.getElementById('new-employee-name');
+        const pinInput = document.getElementById('new-employee-pin');
+        const nome = nameInput.value.trim();
+        const pin = pinInput.value.trim();
+
+        if (!nome || !pin) {
+            alert('Preencha o Nome e o Código PIN.');
+            return;
+        }
+
+        if (dbFuncionarios.some(f => f.nome.toLowerCase() === nome.toLowerCase())) {
+            mostrarToast('❌ Funcionário já cadastrado.');
+            return;
+        }
+
+        // Adiciona direto no banco na nuvem
+        const docRef = doc(collection(db, "funcionarios"));
+        await setDoc(docRef, { nome, pin });
+
+        nameInput.value = '';
+        pinInput.value = '';
+        mostrarToast(`✅ ${nome} adicionado na Nuvem.`);
+    }
+    window.cadastrarFuncionario = cadastrarFuncionario;
+
+    function carregarFuncionarios() {
+        const selectUser = document.getElementById('username');
+        const adminList = document.getElementById('admin-employee-list');
+        
+        const valorSelecionadoAntes = selectUser.value;
+        selectUser.innerHTML = '<option value="">-- Selecione seu nome --</option>';
+        adminList.innerHTML = '';
+
+        dbFuncionarios.sort((a, b) => a.nome.localeCompare(b.nome)).forEach(func => {
+            const option = document.createElement('option');
+            option.value = func.nome; option.textContent = func.nome;
+            selectUser.appendChild(option);
+
+            const item = document.createElement('div');
+            item.style.cssText = 'display:flex; justify-content:space-between; padding: 6px 0; border-bottom:1px solid var(--borda-glow);';
+            item.innerHTML = `<span>${func.nome} <b style="color:#6366f1;">(${func.pin})</b></span> <span style="color:#f43f5e; cursor:pointer; font-weight:700;" onclick="deletarFuncionario('${func.id}')">Remover</span>`;
+            adminList.appendChild(item);
+        });
+        selectUser.value = valorSelecionadoAntes;
+    }
+
+    async function deletarFuncionario(id) {
+        if(confirm(`Deseja remover este funcionário do banco de dados?`)) {
+            await deleteDoc(doc(db, "funcionarios", id));
+            mostrarToast('Funcionário removido.');
+        }
+    }
+    window.deletarFuncionario = deletarFuncionario;
+
+    function validarIdentidadeFuncionario() {
+        const nomeSelecionado = document.getElementById('username').value;
+        const pinDigitado = document.getElementById('user-pin').value.trim();
+        
+        if (!nomeSelecionado) return { valido: false, motivo: 'Selecione seu nome.' };
+        if (!pinDigitado) return { valido: false, motivo: 'Digite seu código PIN.' };
+
+        const usuarioEncontrado = dbFuncionarios.find(f => f.nome === nomeSelecionado);
+        if (usuarioEncontrado && usuarioEncontrado.pin === pinDigitado) {
+            return { valido: true, nome: nomeSelecionado };
+        }
+        return { valido: false, motivo: 'Código PIN Incorreto!' };
+    }
+
+    function limparVisualizacaoFuncionario() {
+        document.getElementById('user-pin').value = '';
+        carregarPontos();
+    }
+    window.limparVisualizacaoFuncionario = limparVisualizacaoFuncionario;
+
+    async function registrarPonto(coluna) {
+        const auth = validarIdentidadeFuncionario();
+        if (!auth.valido) {
+            alert(auth.motivo);
+            return;
+        }
+
+        const agora = new Date();
+        const data = agora.toLocaleDateString('pt-BR');
+        const hora = agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+
+        const ano = agora.getFullYear();
+        const mes = String(agora.getMonth() + 1).padStart(2, '0');
+        const dia = String(agora.getDate()).padStart(2, '0');
+        document.getElementById('ponto-date-filter').value = `${ano}-${mes}-${dia}`;
+
+        // ID único combinando nome e data para evitar duplicidade de linhas
+        const idDocumento = btoa(encodeURIComponent(auth.nome + "_" + data)).replace(/=/g, "");
+        const docRef = doc(db, "pontos", idDocumento);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            let dadosAtualizar = {};
+            dadosAtualizar[coluna] = hora;
+            await updateDoc(docRef, dadosAtualizar);
+        } else {
+            let novoRegistro = { nome: auth.nome, data, entrada: '-', saidaAlmoco: '-', voltaAlmoco: '-', saidaFinal: '-' };
+            novoRegistro[coluna] = hora;
+            await setDoc(docRef, novoRegistro);
+        }
+        mostrarToast(`✨ Ponto nuvem registrado para ${auth.nome}!`);
+    }
+    window.registrarPonto = registrarPonto;
+
+    function carregarPontos() {
+        const tableBody = document.getElementById('history-table');
+        tableBody.innerHTML = '';
+
+        const dataFiltroRaw = document.getElementById('ponto-date-filter').value;
+        if (!dataFiltroRaw) return;
+        const [ano, mes, dia] = dataFiltroRaw.split('-');
+        const dataFiltroBR = `${dia}/${mes}/${ano}`;
+
+        let registrosFiltrados = [];
+        const auth = validarIdentidadeFuncionario();
+
+        if (isAdminLoggedIn) {
+            registrosFiltrados = dbPontos.filter(reg => reg.data === dataFiltroBR);
+        } else if (auth.valido) {
+            registrosFiltrados = dbPontos.filter(reg => reg.data === dataFiltroBR && reg.nome === auth.nome);
+        } else {
+            tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--texto-mutado); padding: 40px;">Insira seu código PIN para validar e visualizar sua frequência em tempo real.</td></tr>`;
+            return;
+        }
+
+        if(registrosFiltrados.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="${isAdminLoggedIn ? 7 : 6}" style="text-align: center; color: var(--texto-mutado); padding: 40px;">Nenhum registro encontrado para esta data na nuvem.</td></tr>`;
+            return;
+        }
+
+        registrosFiltrados.forEach((reg) => {
+            const row = document.createElement('tr');
+            row.id = `row-${reg.id}`;
+            
+            let celulasHorario = '';
+            const turnos = ['entrada', 'saidaAlmoco', 'voltaAlmoco', 'saidaFinal'];
+            const cores = ['var(--neon-entrada)', 'var(--neon-almoco)', 'var(--neon-volta)', 'var(--neon-saida)'];
+
+            turnos.forEach((turno, idx) => {
+                if (reg[turno] === '-') {
+                    celulasHorario += `<td><span class="badge-vazio">-</span></td>`;
+                } else {
+                    celulasHorario += `<td><span class="badge-hora" style="color: ${cores[idx]}; border-bottom: 2px solid ${cores[idx]};">${reg[turno]}</span></td>`;
+                }
+            });
+
+            let tdAcoes = '';
+            if (isAdminLoggedIn) {
+                tdAcoes = `
+                    <td>
+                        <button class="btn-action btn-edit" onclick="habilitarEdicaoLinha('${reg.id}')">Editar</button>
+                        <button class="btn-action btn-delete" onclick="excluirRegistroPonto('${reg.id}')">Excluir</button>
+                    </td>
+                `;
+            }
+
+            row.innerHTML = `
+                <td style="font-weight: 700;">${reg.nome}</td>
+                <td style="color: var(--texto-mutado); font-size:0.85rem; font-weight:600;">${reg.data}</td>
+                ${celulasHorario}
+                ${tdAcoes}
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+    window.carregarPontos = carregarPontos;
+
+    function habilitarEdicaoLinha(id) {
+        const reg = dbPontos.find(p => p.id === id);
+        const row = document.getElementById(`row-${id}`);
+        const turnos = ['entrada', 'saidaAlmoco', 'voltaAlmoco', 'saidaFinal'];
+        
+        let inputsHTML = `
+            <td style="font-weight: 700;"><input type="text" id="edit-nome-${id}" value="${reg.nome}"></td>
+            <td style="color: var(--texto-mutado); font-size:0.85rem;"><input type="text" id="edit-data-${id}" value="${reg.data}" style="width:90px;"></td>
+        `;
+
+        turnos.forEach(turno => {
+            const valorInput = reg[turno] === '-' ? '' : reg[turno];
+            inputsHTML += `<td><input type="time" class="table-input" id="edit-${turno}-${id}" value="${valorInput}"></td>`;
+        });
+
+        inputsHTML += `
+            <td>
+                <button class="btn-action btn-save" onclick="salvarEdicaoLinha('${id}')">Salvar</button>
+                <button class="btn-action" onclick="carregarPontos()">Cancelar</button>
+            </td>
+        `;
+        row.innerHTML = inputsHTML;
+    }
+    window.habilitarEdicaoLinha = habilitarEdicaoLinha;
+
+    async function salvarEdicaoLinha(id) {
+        const nomeAlterado = document.getElementById(`edit-nome-${id}`).value.trim();
+        const dataAlterada = document.getElementById(`edit-data-${id}`).value.trim();
+
+        if(!nomeAlterado || !dataAlterada) return;
+
+        let dadosAtualizados = { nome: nomeAlterado, data: dataAlterada };
+        const turnos = ['entrada', 'saidaAlmoco', 'voltaAlmoco', 'saidaFinal'];
+        turnos.forEach(turno => {
+            const inputVal = document.getElementById(`edit-${turno}-${id}`).value;
+            dadosAtualizados[turno] = inputVal ? inputVal : '-';
+        });
+
+        await updateDoc(doc(db, "pontos", id), dadosAtualizados);
+        mostrarToast('💾 Alterações gravadas na nuvem.');
+    }
+    window.salvarEdicaoLinha = salvarEdicaoLinha;
+
+    async function excluirRegistroPonto(id) {
+        if (confirm('Excluir este registro da nuvem permanentemente?')) {
+            await deleteDoc(doc(db, "pontos", id));
+            mostrarToast('🗑️ Registro apagado.');
+        }
+    }
+    window.excluirRegistroPonto = excluirRegistroPonto;
+
+    function mostrarToast(mensagem) {
+        const toast = document.getElementById('toast');
+        toast.textContent = mensagem;
+        toast.classList.add('show');
+        setTimeout(() => { toast.classList.remove('show'); }, 3000);
+    }
+
+    function exportarCSV() {
+        if (!isAdminLoggedIn) return;
+        if (dbPontos.length === 0) return;
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFFColaborador,Data,Entrada,Saída Almoço,Volta Almoço,Saída Final\n";
+        dbPontos.forEach(reg => {
+            csvContent += `"${reg.nome}","${reg.data}","${reg.entrada}","${reg.saidaAlmoco}","${reg.voltaAlmoco}","${reg.saidaFinal}"\n`;
+        });
+        const link = document.createElement("a");
+        link.setAttribute("href", encodeURI(csvContent));
+        link.setAttribute("download", "Quantum_Export_Nuvem.csv");
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+    window.exportarCSV = exportarCSV;
+
+    async function limparHistorico() {
+        if (!isAdminLoggedIn) return;
+        if (confirm('ATENÇÃO: Deseja apagar todas as batidas de ponto de TODOS os usuários do banco de dados nuvem?')) {
+            const querySnapshot = await getDocs(collection(db, "pontos"));
+            querySnapshot.forEach(async (documento) => {
+                await deleteDoc(doc(db, "pontos", documento.id));
+            });
+            mostrarToast('Banco de dados limpo.');
+        }
+    }
+    window.limparHistorico = limparHistorico;
+</script>
+</body>
+</html>
