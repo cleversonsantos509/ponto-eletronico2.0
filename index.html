@@ -13,7 +13,7 @@
         :root {
             --bg-gradient: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #090d16 70%);
             --bg-body: #090d16;
-            --bg-card: rgba(17, 24, 39, 0.75);
+            --bg-card: rgba(17, 24, 39, 0.85);
             --borda-glow: rgba(255, 255, 255, 0.08);
             --texto-principal: #f3f4f6;
             --texto-mutado: #9ca3af;
@@ -38,8 +38,8 @@
         body.light-mode {
             --bg-gradient: radial-gradient(circle at 50% 0%, #e0e7ff 0%, #f8fafc 70%);
             --bg-body: #f8fafc;
-            --bg-card: rgba(255, 255, 255, 0.88);
-            --borda-glow: rgba(15, 23, 42, 0.08);
+            --bg-card: rgba(255, 255, 255, 0.92);
+            --borda-glow: rgba(15, 23, 42, 0.1);
             --texto-principal: #0f172a;
             --texto-mutado: #64748b;
             --bg-input: #ffffff;
@@ -56,7 +56,7 @@
         .dashboard { max-width: 1200px; width: 100%; display: grid; grid-template-columns: 1fr; gap: 24px; }
         @media (min-width: 950px) { .dashboard { grid-template-columns: 380px 1fr; } }
 
-        .card { background: var(--bg-card); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--borda-glow); padding: 30px; border-radius: 24px; box-shadow: 0 20px 40px -15px rgba(0,0,0,0.15); }
+        .card { background: var(--bg-card); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--borda-glow); padding: 30px; border-radius: 24px; box-shadow: 0 20px 40px -15px rgba(0,0,0,0.2); }
         .col-span-full { grid-column: 1 / -1; }
 
         /* Header */
@@ -66,7 +66,7 @@
         .header-controls { display: flex; align-items: center; gap: 16px; }
         
         /* Botões Globais */
-        .btn-global { background: var(--bg-input); border: 1px solid var(--borda-glow); color: var(--texto-principal); padding: 10px 16px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 8px; }
+        .btn-global { background: var(--bg-input); border: 1px solid var(--borda-glow); color: var(--texto-principal); padding: 10px 16px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-global:hover { transform: translateY(-1px); background: var(--bg-td-hover); }
         .btn-admin-active { background: #6366f1 !important; color: white !important; box-shadow: 0 0 12px rgba(99, 102, 241, 0.4); }
 
@@ -130,9 +130,111 @@
         .btn-danger-sub { background: rgba(244, 63, 94, 0.05); border: 1px solid rgba(244, 63, 94, 0.2); color: var(--neon-saida); }
         .btn-danger-sub:hover { background: var(--neon-saida); color: #fff; }
 
-        /* Toast */
-        #toast { opacity: 0; visibility: hidden; position: fixed; bottom: 30px; right: 30px; background: var(--toast-bg); color: var(--toast-txt); padding: 16px 24px; border-radius: 12px; box-shadow: 0 15px 30px rgba(0,0,0,0.2); transition: all 0.3s; font-size: 0.9rem; font-weight: 700; z-index: 1000; }
-        #toast.show { opacity: 1; visibility: visible; transform: translateY(0); }
+        /* ================= MODAL CENTRALIZADO PROFISSIONAL ================= */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 9999;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-card {
+            background: var(--bg-card);
+            border: 1px solid var(--borda-glow);
+            border-radius: 24px;
+            padding: 32px;
+            max-width: 440px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transform: scale(0.85);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.show .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-icon {
+            font-size: 2.8rem;
+            margin-bottom: 12px;
+            line-height: 1;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            color: var(--texto-principal);
+            letter-spacing: -0.02em;
+        }
+
+        .modal-text {
+            font-size: 0.95rem;
+            color: var(--texto-mutado);
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        .modal-input {
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+            letter-spacing: 0.1em;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .modal-actions .btn-global {
+            flex: 1;
+            padding: 12px 16px;
+        }
+
+        /* Notification Toast Centralizado na Parte Superior/Centro */
+        #toast {
+            opacity: 0;
+            visibility: hidden;
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: var(--toast-bg);
+            color: var(--toast-txt);
+            padding: 14px 28px;
+            border-radius: 50px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 700;
+            z-index: 10000;
+            white-space: nowrap;
+            border: 1px solid var(--borda-glow);
+        }
+        #toast.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -231,21 +333,36 @@
     </div>
 </div>
 
+<div id="custom-modal" class="modal-overlay">
+    <div class="modal-card">
+        <div id="modal-icon" class="modal-icon">🔔</div>
+        <h3 id="modal-title" class="modal-title">Título</h3>
+        <p id="modal-message" class="modal-text">Mensagem...</p>
+        <div id="modal-input-container" style="display: none;">
+            <input type="password" id="modal-input" class="modal-input" placeholder="Digite aqui...">
+        </div>
+        <div class="modal-actions" id="modal-actions">
+            <button class="btn-global" id="modal-btn-cancel">Cancelar</button>
+            <button class="btn-global btn-admin-active" id="modal-btn-confirm">Confirmar</button>
+        </div>
+    </div>
+</div>
+
 <div id="toast">Notificação</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
     import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, updateDoc, deleteDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-    // CONFIGURAÇÃO DO SEU FIREBASE (SUBSTITUA PELOS SEUS DADOS COPIADOS)
-   const firebaseConfig = {
-  apiKey: "AIzaSyDFt8uZtKG-AS_GrA8BbuzyqX2oGTgaaaQ",
-  authDomain: "quantum-ponto.firebaseapp.com",
-  projectId: "quantum-ponto",
-  storageBucket: "quantum-ponto.firebasestorage.app",
-  messagingSenderId: "209663683867",
-  appId: "1:209663683867:web:51946735b1e8c3e39bf7be"
-};
+    // CONFIGURAÇÃO DO SEU FIREBASE
+    const firebaseConfig = {
+        apiKey: "AIzaSyDFt8uZtKG-AS_GrA8BbuzyqX2oGTgaaaQ",
+        authDomain: "quantum-ponto.firebaseapp.com",
+        projectId: "quantum-ponto",
+        storageBucket: "quantum-ponto.firebasestorage.app",
+        messagingSenderId: "209663683867",
+        appId: "1:209663683867:web:51946735b1e8c3e39bf7be"
+    };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -254,6 +371,86 @@
     let dbPontos = [];
     let isAdminLoggedIn = false;
     const SENHA_ADMIN = "95519973";
+
+    /* ================= SISTEMA DE MODAL CENTRALIZADO ================= */
+    function abrirModalDialog({ titulo, mensagem, icone = "⚠️", tipo = "alert", placeholder = "" }) {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('custom-modal');
+            const elIcon = document.getElementById('modal-icon');
+            const elTitle = document.getElementById('modal-title');
+            const elMsg = document.getElementById('modal-message');
+            const elInputContainer = document.getElementById('modal-input-container');
+            const elInput = document.getElementById('modal-input');
+            const btnConfirm = document.getElementById('modal-btn-confirm');
+            const btnCancel = document.getElementById('modal-btn-cancel');
+
+            elIcon.textContent = icone;
+            elTitle.textContent = titulo;
+            elMsg.innerHTML = mensagem;
+
+            if (tipo === 'prompt') {
+                elInputContainer.style.display = 'block';
+                elInput.value = '';
+                elInput.placeholder = placeholder;
+                setTimeout(() => elInput.focus(), 100);
+            } else {
+                elInputContainer.style.display = 'none';
+            }
+
+            if (tipo === 'alert') {
+                btnCancel.style.display = 'none';
+                btnConfirm.textContent = 'Entendido';
+            } else {
+                btnCancel.style.display = 'inline-flex';
+                btnCancel.textContent = 'Cancelar';
+                btnConfirm.textContent = 'Confirmar';
+            }
+
+            modal.classList.add('show');
+
+            const fechar = (valor) => {
+                modal.classList.remove('show');
+                btnConfirm.removeEventListener('click', onConfirm);
+                btnCancel.removeEventListener('click', onCancel);
+                elInput.removeEventListener('keyup', onKeyup);
+                resolve(valor);
+            };
+
+            const onConfirm = () => {
+                if (tipo === 'prompt') {
+                    fechar(elInput.value.trim());
+                } else {
+                    fechar(true);
+                }
+            };
+
+            const onCancel = () => fechar(tipo === 'prompt' ? null : false);
+
+            const onKeyup = (e) => {
+                if (e.key === 'Enter') onConfirm();
+                if (e.key === 'Escape') onCancel();
+            };
+
+            btnConfirm.addEventListener('click', onConfirm);
+            btnCancel.addEventListener('click', onCancel);
+            elInput.addEventListener('keyup', onKeyup);
+        });
+    }
+
+    // Helper para alertas simples
+    async function modalAlert(mensagem, titulo = "Atenção", icone = "ℹ️") {
+        await abrirModalDialog({ titulo, mensagem, icone, tipo: 'alert' });
+    }
+
+    // Helper para confirmações (Sim / Não)
+    async function modalConfirm(mensagem, titulo = "Confirmação", icone = "❓") {
+        return await abrirModalDialog({ titulo, mensagem, icone, tipo: 'confirm' });
+    }
+
+    // Helper para prompts (Entrada de texto)
+    async function modalPrompt(mensagem, titulo = "Acesso Restrito", placeholder = "") {
+        return await abrirModalDialog({ titulo, mensagem, icone: "🔒", tipo: 'prompt', placeholder });
+    }
 
     // Relógio Ativo
     function updateClock() {
@@ -306,10 +503,10 @@
     }
     window.alternarTema = alternarTema;
 
-    function toggleAdminView() {
+    async function toggleAdminView() {
         const utilsBar = document.getElementById('admin-utils-bar');
         if (!isAdminLoggedIn) {
-            const senha = prompt("Insira a senha de administrador:");
+            const senha = await modalPrompt("Insira a senha de administrador para acessar o painel:", "Área Restrita", "Senha Master");
             if (senha === SENHA_ADMIN) {
                 isAdminLoggedIn = true;
                 document.getElementById('admin-panel').style.display = 'block';
@@ -322,7 +519,7 @@
                 mostrarToast('🔓 Modo Administrador ativado.');
                 carregarPontos();
             } else if (senha !== null) {
-                alert('Senha incorreta!');
+                await modalAlert('Senha de administrador incorreta!', 'Acesso Negado', '🚫');
             }
         } else {
             isAdminLoggedIn = false;
@@ -347,7 +544,7 @@
         const pin = pinInput.value.trim();
 
         if (!nome || !pin) {
-            alert('Preencha o Nome e o Código PIN.');
+            await modalAlert('Preencha o Nome e o Código PIN para realizar o cadastro.', 'Campos Incompletos', '⚠️');
             return;
         }
 
@@ -356,7 +553,6 @@
             return;
         }
 
-        // Adiciona direto no banco na nuvem
         const docRef = doc(collection(db, "funcionarios"));
         await setDoc(docRef, { nome, pin });
 
@@ -381,14 +577,15 @@
 
             const item = document.createElement('div');
             item.style.cssText = 'display:flex; justify-content:space-between; padding: 6px 0; border-bottom:1px solid var(--borda-glow);';
-            item.innerHTML = `<span>${func.nome} <b style="color:#6366f1;">(${func.pin})</b></span> <span style="color:#f43f5e; cursor:pointer; font-weight:700;" onclick="deletarFuncionario('${func.id}')">Remover</span>`;
+            item.innerHTML = `<span>${func.nome} <b style="color:#6366f1;">(${func.pin})</b></span> <span style="color:#f43f5e; cursor:pointer; font-weight:700;" onclick="deletarFuncionario('${func.id}', '${func.nome}')">Remover</span>`;
             adminList.appendChild(item);
         });
         selectUser.value = valorSelecionadoAntes;
     }
 
-    async function deletarFuncionario(id) {
-        if(confirm(`Deseja remover este funcionário do banco de dados?`)) {
+    async function deletarFuncionario(id, nome) {
+        const confirmou = await modalConfirm(`Deseja remover <b>${nome}</b> do banco de dados?`, 'Remover Colaborador', '🗑️');
+        if(confirmou) {
             await deleteDoc(doc(db, "funcionarios", id));
             mostrarToast('Funcionário removido.');
         }
@@ -399,8 +596,8 @@
         const nomeSelecionado = document.getElementById('username').value;
         const pinDigitado = document.getElementById('user-pin').value.trim();
         
-        if (!nomeSelecionado) return { valido: false, motivo: 'Selecione seu nome.' };
-        if (!pinDigitado) return { valido: false, motivo: 'Digite seu código PIN.' };
+        if (!nomeSelecionado) return { valido: false, motivo: 'Selecione seu nome da lista.' };
+        if (!pinDigitado) return { valido: false, motivo: 'Digite seu código PIN de acesso.' };
 
         const usuarioEncontrado = dbFuncionarios.find(f => f.nome === nomeSelecionado);
         if (usuarioEncontrado && usuarioEncontrado.pin === pinDigitado) {
@@ -418,7 +615,7 @@
     async function registrarPonto(coluna) {
         const auth = validarIdentidadeFuncionario();
         if (!auth.valido) {
-            alert(auth.motivo);
+            await modalAlert(auth.motivo, 'Validação de Acesso', '🔐');
             return;
         }
 
@@ -431,10 +628,30 @@
         const dia = String(agora.getDate()).padStart(2, '0');
         document.getElementById('ponto-date-filter').value = `${ano}-${mes}-${dia}`;
 
-        // ID único combinando nome e data para evitar duplicidade de linhas
         const idDocumento = btoa(encodeURIComponent(auth.nome + "_" + data)).replace(/=/g, "");
         const docRef = doc(db, "pontos", idDocumento);
         const docSnap = await getDoc(docRef);
+
+        // Validação de intervalo do almoço (60 minutos)
+        if (coluna === 'voltaAlmoco' && docSnap.exists()) {
+            const dados = docSnap.data();
+            if (dados.saidaAlmoco && dados.saidaAlmoco !== '-') {
+                const [hSaida, mSaida] = dados.saidaAlmoco.split(':').map(Number);
+                const inicioAlmoco = new Date(agora);
+                inicioAlmoco.setHours(hSaida, mSaida, 0, 0);
+
+                const diffMs = agora - inicioAlmoco;
+                const diffMin = Math.floor(diffMs / (1000 * 60));
+
+                if (diffMin < 60) {
+                    const restante = 60 - diffMin;
+                    const msgHTML = `Você cumpriu apenas <b>${diffMin} minuto(s)</b> de intervalo.<br>Ainda restam <b>${restante} minuto(s)</b> para completar 1 hora.<br><br>Deseja registrar assim mesmo?`;
+                    
+                    const confirmou = await modalConfirm(msgHTML, 'Intervalo Incompleto', '⏳');
+                    if (!confirmou) return;
+                }
+            }
+        }
 
         if (docSnap.exists()) {
             let dadosAtualizar = {};
@@ -445,7 +662,7 @@
             novoRegistro[coluna] = hora;
             await setDoc(docRef, novoRegistro);
         }
-        mostrarToast(`✨ Ponto nuvem registrado para ${auth.nome}!`);
+        mostrarToast(`✨ Ponto registrado para ${auth.nome}!`);
     }
     window.registrarPonto = registrarPonto;
 
@@ -556,7 +773,8 @@
     window.salvarEdicaoLinha = salvarEdicaoLinha;
 
     async function excluirRegistroPonto(id) {
-        if (confirm('Excluir este registro da nuvem permanentemente?')) {
+        const confirmou = await modalConfirm('Excluir este registro da nuvem permanentemente?', 'Excluir Ponto', '⚠️');
+        if (confirmou) {
             await deleteDoc(doc(db, "pontos", id));
             mostrarToast('🗑️ Registro apagado.');
         }
@@ -567,7 +785,7 @@
         const toast = document.getElementById('toast');
         toast.textContent = mensagem;
         toast.classList.add('show');
-        setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        setTimeout(() => { toast.classList.remove('show'); }, 3200);
     }
 
     function exportarCSV() {
@@ -586,7 +804,8 @@
 
     async function limparHistorico() {
         if (!isAdminLoggedIn) return;
-        if (confirm('ATENÇÃO: Deseja apagar todas as batidas de ponto de TODOS os usuários do banco de dados nuvem?')) {
+        const confirmou = await modalConfirm('ATENÇÃO: Deseja apagar todas as batidas de ponto de TODOS os usuários do banco de dados na nuvem?', 'Zerar Base de Dados', '🔥');
+        if (confirmou) {
             const querySnapshot = await getDocs(collection(db, "pontos"));
             querySnapshot.forEach(async (documento) => {
                 await deleteDoc(doc(db, "pontos", documento.id));
